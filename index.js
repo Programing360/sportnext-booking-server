@@ -24,6 +24,7 @@ async function run() {
   try {
     const myDB = client.db("sportFacilities");
     const myFacilitiesColl = myDB.collection("facilities");
+    const myBookingsColl = myDB.collection("bookings");
 
     app.get("/facilities", async (req, res) => {
       const result = await myFacilitiesColl.find().toArray();
@@ -36,6 +37,24 @@ async function run() {
       const result = await myFacilitiesColl.findOne(query);
       res.send(result);
     });
+
+    app.post("/facilities", async (req, res) => {
+      const data = req.body;
+      const result = await myFacilitiesColl.insertOne(data);
+      res.send(result);
+    });
+
+    app.post('/bookings', async(req,res) =>{
+        const data = req.body;
+
+        const bookingInfo = {
+            ...data,
+            status:"pending"
+        }
+
+        const result  = await myBookingsColl.insertOne(bookingInfo)
+        res.send(result)
+    })
 
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
