@@ -1,6 +1,7 @@
 const express = require("express");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const cors = require("cors");
+const { createRemoteJWKSet, jwtVerify } = require("jose-cjs");
 require("dotenv").config();
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -19,6 +20,30 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   },
 });
+// JWT Verification
+const JWKS = createRemoteJWKSet(
+  new URL(`${process.env.PUBLIC_URL}/api/auth/jwks`),
+);
+
+const verification = async (req, res, next) => {
+  const authorization = req.headers.authorization;
+  if (!authorization) {
+    return res
+      .status(401)
+      .send({ error: true, message: "Unauthorized access" });
+  }
+
+  const token = authorization.split(" ")[1];
+  try {
+    const { payload } = await jwtVerify(token, JWKS);
+    next();
+  } catch (error) {
+    return res.status(403).send({ error: true, message: "Forbidden access" });
+  }
+
+  console.log(token);
+  next();
+};
 
 async function run() {
   try {
@@ -44,24 +69,24 @@ async function run() {
       res.send(result);
     });
 
-    app.get('/bookings/:id', async(req,res) => {
-        const userId = req.params.id
-        const query = {userId: userId}
-        const result = await myBookingsColl.find(query).toArray()
-        res.send(result)
-    })
+    app.get("/bookings/:id", verification, async (req, res) => {
+      const userId = req.params.id;
+      const query = { userId: userId };
+      const result = await myBookingsColl.find(query).toArray();
+      res.send(result);
+    });
 
-    app.post('/bookings', async(req,res) =>{
-        const data = req.body;
+    app.post("/bookings", async (req, res) => {
+      const data = req.body;
 
-        const bookingInfo = {
-            ...data,
-            status:"pending"
-        }
+      const bookingInfo = {
+        ...data,
+        status: "pending",
+      };
 
-        const result  = await myBookingsColl.insertOne(bookingInfo)
-        res.send(result)
-    })
+      const result = await myBookingsColl.insertOne(bookingInfo);
+      res.send(result);
+    });
 
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
