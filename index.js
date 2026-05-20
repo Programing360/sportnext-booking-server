@@ -34,7 +34,7 @@ async function run() {
     app.get("/facilities/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
-      const result = await myFacilitiesColl.findOne(query);
+      const result = await myFacilitiesColl.findOne();
       res.send(result);
     });
 
@@ -43,6 +43,13 @@ async function run() {
       const result = await myFacilitiesColl.insertOne(data);
       res.send(result);
     });
+
+    app.get('/bookings/:id', async(req,res) => {
+        const userId = req.params.id
+        const query = {userId: userId}
+        const result = await myBookingsColl.find(query).toArray()
+        res.send(result)
+    })
 
     app.post('/bookings', async(req,res) =>{
         const data = req.body;
