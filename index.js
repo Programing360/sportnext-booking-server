@@ -18,6 +18,7 @@ const client = new MongoClient(uri, {
     version: ServerApiVersion.v1,
     strict: true,
     deprecationErrors: true,
+    maxPoolSize: 10,
   },
 });
 // JWT Verification
@@ -66,6 +67,13 @@ async function run() {
       res.send(result);
     });
 
+    app.delete("deleteFacilities/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await myFacilitiesColl.deleteOne(query);
+      res.send(result);
+    });
+
     app.get("/bookings/:id", verification, async (req, res) => {
       const userId = req.params.id;
       const query = { userId: userId };
@@ -73,7 +81,7 @@ async function run() {
       res.send(result);
     });
 
-    app.post("/bookings", async (req, res) => {
+    app.post("/bookings", verification, async (req, res) => {
       const data = req.body;
 
       const bookingInfo = {
