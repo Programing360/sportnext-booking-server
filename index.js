@@ -40,9 +40,6 @@ const verification = async (req, res, next) => {
   } catch (error) {
     return res.status(403).send({ error: true, message: "Forbidden access" });
   }
-
-  console.log(token);
-  next();
 };
 
 async function run() {
@@ -56,7 +53,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/facilities/:id", async (req, res) => {
+    app.get("/facilities/:id", verification, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await myFacilitiesColl.findOne();
@@ -85,6 +82,13 @@ async function run() {
       };
 
       const result = await myBookingsColl.insertOne(bookingInfo);
+      res.send(result);
+    });
+
+    app.delete("/cancelBooking/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await myBookingsColl.deleteOne(query);
       res.send(result);
     });
 
