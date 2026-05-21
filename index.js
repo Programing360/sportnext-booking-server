@@ -93,7 +93,16 @@ async function run() {
       res.send(result);
     });
 
-    
+    app.post("/bookings", async (req, res) => {
+      const data = req.body;
+      const bookingInfo = {
+        ...data,
+        status: "pending",
+      };
+
+      const result = await myBookingsColl.insertOne(bookingInfo);
+      res.send(result);
+    });
 
     app.delete("/cancelBooking/:id", async (req, res) => {
       const id = req.params.id;
