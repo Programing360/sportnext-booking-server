@@ -61,37 +61,39 @@ async function run() {
       res.send(result);
     });
 
-    app.post("/facilities", async (req, res) => {
+    app.post("/facilities", verification, async (req, res) => {
       const data = req.body;
       const result = await myFacilitiesColl.insertOne(data);
       res.send(result);
     });
 
-    app.delete("deleteFacilities/:id", async (req, res) => {
+    app.delete("/deleteFacilities/:id", verification, async (req, res) => {
       const id = req.params.id;
+      console.log(id);
       const query = { _id: new ObjectId(id) };
       const result = await myFacilitiesColl.deleteOne(query);
       res.send(result);
     });
 
-    app.get("/bookings/:id", verification, async (req, res) => {
+    app.patch("/updateFacilities/:id", async (req, res) => {
+      const updateData = req.body;
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: updateData,
+      };
+      const result = await myFacilitiesColl.updateOne(query, updateDoc);
+      res.send(result);
+    });
+
+    app.get("/bookings/:id", async (req, res) => {
       const userId = req.params.id;
       const query = { userId: userId };
       const result = await myBookingsColl.find(query).toArray();
       res.send(result);
     });
 
-    app.post("/bookings", verification, async (req, res) => {
-      const data = req.body;
-
-      const bookingInfo = {
-        ...data,
-        status: "pending",
-      };
-
-      const result = await myBookingsColl.insertOne(bookingInfo);
-      res.send(result);
-    });
+    
 
     app.delete("/cancelBooking/:id", async (req, res) => {
       const id = req.params.id;
@@ -101,9 +103,9 @@ async function run() {
     });
 
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!",
     );
