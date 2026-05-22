@@ -54,9 +54,10 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/facilities/:id", async (req, res) => {
+    app.get("/facilities/:id",verification,  async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
+      console.log(query,id);
       const result = await myFacilitiesColl.findOne();
       res.send(result);
     });
