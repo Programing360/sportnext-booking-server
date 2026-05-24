@@ -54,10 +54,48 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/facilities/:id",verification,  async (req, res) => {
+    app.get('/ownFacilities/:id', verification, async(req,res) => {
+      const id = req.params.id
+      const query = {ownerId: id};
+      const result = await myFacilitiesColl.find(query).toArray();
+      console.log(result,query);
+      res.send(result)
+
+    })
+
+    app.get("/facilities/:id", verification, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await myFacilitiesColl.findOne(query);
+      res.send(result);
+    });
+
+    app.get("/facilitiesSearch", async (req, res) => {
+      const search = req.query.search || "";
+      const query = {
+        name: {
+          $regex: search,
+          $options: "i",
+        },
+      };
+      const result = await myFacilitiesColl.find(query).toArray();
+      res.send(result);
+    });
+
+    app.get("/facilitiesType", async (req, res) => {
+      const sportType = req.query.type || "";
+      const query = {};
+
+      if (sportType.toLowerCase() === "all") {
+        const result = await myFacilitiesColl.find().toArray();
+       return res.send(result);
+      }
+
+      if (sportType) {
+        const sportArray = sportType.split(",");
+        query.sportType = { $in: sportArray };
+      }
+      const result = await myFacilitiesColl.find(query).toArray();
       res.send(result);
     });
 
@@ -69,7 +107,6 @@ async function run() {
 
     app.delete("/deleteFacilities/:id", verification, async (req, res) => {
       const id = req.params.id;
-      console.log(id);
       const query = { _id: new ObjectId(id) };
       const result = await myFacilitiesColl.deleteOne(query);
       res.send(result);
@@ -86,14 +123,15 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/bookings/:id", async (req, res) => {
+    app.get("/bookings/:id", verification, async (req, res) => {
       const userId = req.params.id;
       const query = { userId: userId };
       const result = await myBookingsColl.find(query).toArray();
       res.send(result);
     });
 
-    app.post("/bookings", async (req, res) => {
+    app.post("/bookings", verification, async (req, res) => {
+
       const data = req.body;
       const bookingInfo = {
         ...data,
@@ -104,7 +142,7 @@ async function run() {
       res.send(result);
     });
 
-    app.delete("/cancelBooking/:id", async (req, res) => {
+    app.delete("/cancelBooking/:id",verification, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await myBookingsColl.deleteOne(query);
